@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { IngredientInput } from "@/components/IngredientInput";
 import { RecipeCard } from "@/components/RecipeCard";
-import { Loader2, Search } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { generateRecipesSuggestions } from "@/services/spoonacular";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,6 @@ const Index = () => {
   const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [apiKey, setApiKey] = useState(localStorage.getItem("SPOONACULAR_API_KEY") || "");
-  const [query, setQuery] = useState("");
-  const [cuisine, setCuisine] = useState("");
   const { toast } = useToast();
 
   const handleSubmit = async (ingredients: string[]) => {
@@ -28,40 +26,6 @@ const Index = () => {
     setLoading(true);
     try {
       const suggestions = await generateRecipesSuggestions({ ingredients });
-      setRecipes(suggestions);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to fetch recipes",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = async () => {
-    if (!apiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please enter your Spoonacular API key first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!query && !cuisine) {
-      toast({
-        title: "Search Required",
-        description: "Please enter a search term or cuisine type.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const suggestions = await generateRecipesSuggestions({ query, cuisine });
       setRecipes(suggestions);
     } catch (error) {
       toast({
@@ -99,7 +63,7 @@ const Index = () => {
             Recipe Finder
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Search by ingredients or use the search bar to find recipes by name and cuisine!
+            Enter your ingredients and find matching recipes!
           </p>
         </div>
 
@@ -116,33 +80,6 @@ const Index = () => {
               Save Key
             </Button>
           </div>
-        </div>
-
-        <div className="mb-8 max-w-2xl mx-auto">
-          <div className="flex gap-2 mb-4">
-            <Input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search recipes (e.g., pasta)"
-              className="flex-1"
-            />
-            <Input
-              type="text"
-              value={cuisine}
-              onChange={(e) => setCuisine(e.target.value)}
-              placeholder="Cuisine type (e.g., Italian)"
-              className="flex-1"
-            />
-            <Button onClick={handleSearch} variant="outline">
-              <Search className="mr-2" />
-              Search
-            </Button>
-          </div>
-        </div>
-
-        <div className="text-center mb-8">
-          <p className="text-gray-600">- OR -</p>
         </div>
 
         <IngredientInput onSubmit={handleSubmit} />
