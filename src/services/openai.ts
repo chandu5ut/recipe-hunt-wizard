@@ -1,4 +1,4 @@
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const RECIPE_SYSTEM_PROMPT = `You are a professional chef and recipe expert. Analyze the given ingredients and suggest detailed recipes. For each recipe, provide:
 1. Title
@@ -27,7 +27,7 @@ export const generateRecipesSuggestions = async (ingredients: string[]) => {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-4o", // Updated to use the correct model
         messages: [
           {
             role: "system",
