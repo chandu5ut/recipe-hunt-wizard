@@ -8,12 +8,23 @@ const RECIPE_SYSTEM_PROMPT = `You are a professional chef and recipe expert. Ana
 Format the response as a JSON array of recipe objects.`;
 
 export const generateRecipesSuggestions = async (ingredients: string[]) => {
+  const apiKey = localStorage.getItem("OPENAI_API_KEY");
+  
+  if (!apiKey) {
+    toast({
+      title: "API Key Required",
+      description: "Please enter your OpenAI API key first.",
+      variant: "destructive",
+    });
+    return [];
+  }
+
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("OPENAI_API_KEY")}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: "gpt-4",
@@ -32,7 +43,22 @@ export const generateRecipesSuggestions = async (ingredients: string[]) => {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to generate recipes");
+      const errorData = await response.json();
+      if (response.status === 401) {
+        localStorage.removeItem("OPENAI_API_KEY"); // Clear invalid API key
+        toast({
+          title: "Invalid API Key",
+          description: "Please check your OpenAI API key and try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: errorData.error?.message || "Failed to generate recipes",
+          variant: "destructive",
+        });
+      }
+      return [];
     }
 
     const data = await response.json();

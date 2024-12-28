@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { generateRecipesSuggestions } from "@/services/openai";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [recipes, setRecipes] = useState<any[]>([]);
@@ -33,7 +33,16 @@ const Index = () => {
   };
 
   const handleSaveApiKey = () => {
-    localStorage.setItem("OPENAI_API_KEY", apiKey);
+    if (!apiKey.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid API key",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    localStorage.setItem("OPENAI_API_KEY", apiKey.trim());
     toast({
       title: "Success",
       description: "API key saved successfully!",
