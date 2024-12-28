@@ -12,8 +12,8 @@ interface Recipe {
   id: number;
   title: string;
   image: string;
-  usedIngredients: { original: string }[];
-  missedIngredients: { original: string }[];
+  usedIngredients: string[];
+  missedIngredients: string[];
 }
 
 interface RecipeCardProps {
@@ -42,18 +42,18 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
             </CardDescription>
             <ul className="text-sm space-y-1">
               {recipe.usedIngredients.map((ingredient, index) => (
-                <li key={index}>{ingredient.original}</li>
+                <li key={index}>{ingredient}</li>
               ))}
             </ul>
           </div>
           <div>
             <CardDescription className="font-medium mb-2 flex items-center gap-2">
               <X className="text-red-500" size={16} />
-              Missing Ingredients:
+              Additional Ingredients Needed:
             </CardDescription>
             <ul className="text-sm space-y-1">
               {recipe.missedIngredients.map((ingredient, index) => (
-                <li key={index}>{ingredient.original}</li>
+                <li key={index}>{ingredient}</li>
               ))}
             </ul>
           </div>

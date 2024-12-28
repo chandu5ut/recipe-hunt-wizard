@@ -1,72 +1,43 @@
 import { useState } from "react";
 import { IngredientInput } from "@/components/IngredientInput";
 import { RecipeCard } from "@/components/RecipeCard";
-import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
-
-interface Recipe {
-  id: number;
-  title: string;
-  image: string;
-  usedIngredients: { original: string }[];
-  missedIngredients: { original: string }[];
-}
+import { generateRecipesSuggestions } from "@/services/openai";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [apiKey, setApiKey] = useState(localStorage.getItem("OPENAI_API_KEY") || "");
   const { toast } = useToast();
 
   const handleSubmit = async (ingredients: string[]) => {
-    setLoading(true);
-    try {
-      // This is a mock API call - replace with your actual API endpoint
-      const mockRecipes = [
-        {
-          id: 1,
-          title: "Pasta with Garlic and Olive Oil",
-          image: "https://spoonacular.com/recipeImages/pasta-garlic-olive-oil.jpg",
-          usedIngredients: [
-            { original: "Garlic" },
-            { original: "Olive Oil" },
-          ],
-          missedIngredients: [
-            { original: "Fresh Parsley" },
-            { original: "Parmesan Cheese" },
-          ],
-        },
-        {
-          id: 2,
-          title: "Simple Tomato Sauce",
-          image: "https://spoonacular.com/recipeImages/tomato-sauce.jpg",
-          usedIngredients: [
-            { original: "Tomatoes" },
-            { original: "Garlic" },
-          ],
-          missedIngredients: [
-            { original: "Fresh Basil" },
-            { original: "Red Pepper Flakes" },
-          ],
-        },
-      ];
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setRecipes(mockRecipes);
-      
+    if (!apiKey) {
       toast({
-        title: "Recipes Found!",
-        description: `Found ${mockRecipes.length} recipes with your ingredients.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch recipes. Please try again.",
+        title: "API Key Required",
+        description: "Please enter your OpenAI API key first.",
         variant: "destructive",
       });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const suggestions = await generateRecipesSuggestions(ingredients);
+      setRecipes(suggestions);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSaveApiKey = () => {
+    localStorage.setItem("OPENAI_API_KEY", apiKey);
+    toast({
+      title: "Success",
+      description: "API key saved successfully!",
+    });
   };
 
   return (
@@ -74,11 +45,26 @@ const Index = () => {
       <div className="container py-8 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-recipe-text mb-4">
-            Recipe Finder
+            AI Recipe Finder
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Enter your available ingredients and discover delicious recipes you can make!
+            Enter your available ingredients and let AI suggest delicious recipes you can make!
           </p>
+        </div>
+
+        <div className="mb-8 max-w-md mx-auto">
+          <div className="flex gap-2">
+            <Input
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Enter your OpenAI API key"
+              className="flex-1"
+            />
+            <Button onClick={handleSaveApiKey} variant="outline">
+              Save Key
+            </Button>
+          </div>
         </div>
 
         <IngredientInput onSubmit={handleSubmit} />
