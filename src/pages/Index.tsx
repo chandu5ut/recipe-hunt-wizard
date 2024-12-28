@@ -2,7 +2,7 @@ import { useState } from "react";
 import { IngredientInput } from "@/components/IngredientInput";
 import { RecipeCard } from "@/components/RecipeCard";
 import { Loader2 } from "lucide-react";
-import { generateRecipesSuggestions } from "@/services/openai";
+import { generateRecipesSuggestions } from "@/services/spoonacular";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -10,14 +10,14 @@ import { useToast } from "@/hooks/use-toast";
 const Index = () => {
   const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [apiKey, setApiKey] = useState(localStorage.getItem("OPENAI_API_KEY") || "");
+  const [apiKey, setApiKey] = useState(localStorage.getItem("SPOONACULAR_API_KEY") || "");
   const { toast } = useToast();
 
   const handleSubmit = async (ingredients: string[]) => {
     if (!apiKey) {
       toast({
         title: "API Key Required",
-        description: "Please enter your OpenAI API key first.",
+        description: "Please enter your Spoonacular API key first.",
         variant: "destructive",
       });
       return;
@@ -27,6 +27,12 @@ const Index = () => {
     try {
       const suggestions = await generateRecipesSuggestions(ingredients);
       setRecipes(suggestions);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to fetch recipes",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -42,7 +48,7 @@ const Index = () => {
       return;
     }
     
-    localStorage.setItem("OPENAI_API_KEY", apiKey.trim());
+    localStorage.setItem("SPOONACULAR_API_KEY", apiKey.trim());
     toast({
       title: "Success",
       description: "API key saved successfully!",
@@ -54,10 +60,10 @@ const Index = () => {
       <div className="container py-8 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-recipe-text mb-4">
-            AI Recipe Finder
+            Recipe Finder
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Enter your available ingredients and let AI suggest delicious recipes you can make!
+            Enter your available ingredients and discover delicious recipes you can make!
           </p>
         </div>
 
@@ -67,7 +73,7 @@ const Index = () => {
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter your OpenAI API key"
+              placeholder="Enter your Spoonacular API key"
               className="flex-1"
             />
             <Button onClick={handleSaveApiKey} variant="outline">
