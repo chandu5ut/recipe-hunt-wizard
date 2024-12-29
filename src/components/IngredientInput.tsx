@@ -57,6 +57,7 @@ export const IngredientInput: React.FC<IngredientInputProps> = ({ onSubmit }) =>
         );
       } catch (error) {
         console.error("Error fetching suggestions:", error);
+        setSuggestions([]); // Ensure suggestions is empty on error
       }
     };
 
@@ -91,7 +92,7 @@ export const IngredientInput: React.FC<IngredientInputProps> = ({ onSubmit }) =>
     <div className="w-full max-w-2xl mx-auto">
       <form onSubmit={(e) => e.preventDefault()} className="mb-4">
         <div className="flex gap-2">
-          <Popover open={open} onOpenChange={setOpen}>
+          <Popover open={open && suggestions.length > 0} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <div className="flex-1">
                 <Input
@@ -103,28 +104,28 @@ export const IngredientInput: React.FC<IngredientInputProps> = ({ onSubmit }) =>
                 />
               </div>
             </PopoverTrigger>
-            {suggestions.length > 0 && (
-              <PopoverContent className="w-full p-0" align="start">
-                <Command>
-                  <CommandGroup>
-                    {suggestions.map((suggestion) => (
-                      <CommandItem
-                        key={suggestion.name}
-                        onSelect={() => handleAddIngredient(suggestion.name)}
-                        className="flex items-center gap-2 cursor-pointer"
-                      >
-                        <img
-                          src={suggestion.image}
-                          alt={suggestion.name}
-                          className="w-8 h-8 object-cover rounded"
-                        />
-                        <span>{suggestion.name}</span>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            )}
+            <PopoverContent className="w-full p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search ingredients..." />
+                <CommandEmpty>No ingredients found.</CommandEmpty>
+                <CommandGroup>
+                  {suggestions.map((suggestion) => (
+                    <CommandItem
+                      key={suggestion.name}
+                      onSelect={() => handleAddIngredient(suggestion.name)}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <img
+                        src={suggestion.image}
+                        alt={suggestion.name}
+                        className="w-8 h-8 object-cover rounded"
+                      />
+                      <span>{suggestion.name}</span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
           </Popover>
           <Button
             type="button"
