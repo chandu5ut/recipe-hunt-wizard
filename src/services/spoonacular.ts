@@ -20,7 +20,11 @@ export const generateRecipesSuggestions = async ({ ingredients }: SearchParams) 
 
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error('Failed to fetch recipes');
+    const errorData = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+      throw new Error('401: Invalid or expired API key');
+    }
+    throw new Error(`Failed to fetch recipes: ${errorData.message || response.statusText}`);
   }
 
   const data = await response.json();
