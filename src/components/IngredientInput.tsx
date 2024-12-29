@@ -37,33 +37,52 @@ export const IngredientInput: React.FC<IngredientInputProps> = ({ onSubmit }) =>
     const fetchSuggestions = async () => {
       if (currentIngredient.trim().length < 2) {
         setSuggestions([]);
+        setOpen(false);
         return;
       }
 
       const apiKey = localStorage.getItem("SPOONACULAR_API_KEY");
-      if (!apiKey) return;
+      if (!apiKey) {
+        setSuggestions([]);
+        setOpen(false);
+        return;
+      }
 
       try {
         const response = await fetch(
           `https://api.spoonacular.com/food/ingredients/autocomplete?apiKey=${apiKey}&query=${currentIngredient}&number=5`
         );
-        if (!response.ok) throw new Error("Failed to fetch suggestions");
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          if (response.status === 401) {
+            localStorage.removeItem("SPOONACULAR_API_KEY");
+            toast({
+              title: "API Key Error",
+              description: "Your API key is invalid or expired. Please enter a new one.",
+              variant: "destructive",
+            });
+          }
+          throw new Error(errorData.message || "Failed to fetch suggestions");
+        }
+
         const data = await response.json();
-        setSuggestions(
-          data.map((item: any) => ({
-            name: item.name,
-            image: `https://spoonacular.com/cdn/ingredients_100x100/${item.image}`,
-          }))
-        );
+        const newSuggestions = data.map((item: any) => ({
+          name: item.name,
+          image: `https://spoonacular.com/cdn/ingredients_100x100/${item.image}`,
+        }));
+        setSuggestions(newSuggestions);
+        setOpen(newSuggestions.length > 0);
       } catch (error) {
         console.error("Error fetching suggestions:", error);
-        setSuggestions([]); // Ensure suggestions is empty on error
+        setSuggestions([]);
+        setOpen(false);
       }
     };
 
     const debounceTimer = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(debounceTimer);
-  }, [currentIngredient]);
+  }, [currentIngredient, toast]);
 
   const handleAddIngredient = (ingredient: string) => {
     if (ingredient.trim() && !ingredients.includes(ingredient.trim())) {
@@ -92,7 +111,7 @@ export const IngredientInput: React.FC<IngredientInputProps> = ({ onSubmit }) =>
     <div className="w-full max-w-2xl mx-auto">
       <form onSubmit={(e) => e.preventDefault()} className="mb-4">
         <div className="flex gap-2">
-          <Popover open={open && suggestions.length > 0} onOpenChange={setOpen}>
+          <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <div className="flex-1">
                 <Input
